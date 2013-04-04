@@ -5,24 +5,14 @@ import play.api.mvc.Results._
 import play.api.GlobalSettings
 import play.core.StaticApplication
 
-object WebApp extends App {
+object Global extends App with GlobalSettings {
 
   implicit val messageWrites = Json.writes[Message]
 
   new play.core.server.NettyServer(new StaticApplication(new File(".")), 9000)
 
-  def index = Action {
-    Ok(Json.toJson(Message("hello, world")))
-  }
+  override def onRouteRequest(request: RequestHeader) = Some(Action(Ok(Json.toJson(Message("hello, world")))))
   
   case class Message(value: String)
   
-}
-
-object Global extends GlobalSettings {
-
-  override def onRouteRequest(request: RequestHeader) = {
-    // route all requests to the WebApp.index method
-    Some(WebApp.index)
-  }
 }
