@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Play Simple REST</title>
+    <script src="webjars/jquery/1.9.1/jquery.min.js"></script>
+    <script>
+        $(function() {
+            getBars()
+            
+            $("#barform").submit(function(event) {
+                event.preventDefault()
+                
+                var bar = {name: $("#barname").val()}
+
+                var requestParams = {
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    success: function() {
+                        clearForm()
+                        getBars()
+                    }
+                }
+                
+                var maybeId = parseInt($("#barid").val())
+                if (isNaN(maybeId)) {
+                    // create
+                    requestParams.url = "/bars"
+                    requestParams.type = "POST"
+                }
+                else {
+                    // update
+                    bar.id = maybeId
+
+                    requestParams.url = "/bars/" + bar.id
+                    requestParams.type = "PUT"
+                }
+                
+                requestParams.data = JSON.stringify(bar)
+                        
+                $.ajax(requestParams)
+            })
+            
+            $("#newbar").click(function(event) {
+                clearForm()
+            })
+
+            $(window).on("hashchange", function() {
+                updateFormBarId()
+            })
+        })
+        
+        function updateFormBarId() {
+            var barid = window.location.hash.substr(1)
+            var baritem = $("#bar-" + barid)
+            if (baritem.length == 1) {
+                $("#barid").val(barid)
+                $("#barname").val(baritem.prop("data-name"))
+            }
+        }
+        
+        function clearForm() {
+            $("#barid").val("")
+            $("#barname").val("")
+        }
+        
+        function getBars() {
+            $.get("/bars", function(bars) {
+                $("#bars").empty()
+                $.each(bars, function(index, bar) {
+                    var li = $("<li>").text(bar.name).prop("id", "bar-" + bar.id).prop("data-name", bar.name)
+                    li.append(" ( ")
+                    li.append($("<a>").prop("href", "#" + bar.id).text("edit"))
+                    li.append(" | ")
+                    li.append($("<a>").prop("href", "#").text("delete").prop("data-id", bar.id).click(function(event) {
+                        console.log($(this))
+                        $.ajax({
+                            url: "/bars/" + $(this).prop("data-id"),
+                            type: "DELETE",
+                            success: function() {
+                                clearForm()
+                                getBars()
+                            }
+                        })
+                    }))
+                    li.append(" )")
+                    $("#bars").append(li)
+                })
+
+                updateFormBarId()
+            })
+        }
+    </script>
+</head>
+<body>
+    <h2>Bars:</h2>
+    <ul id="bars"></ul>
+    
+    <button id="newbar">New Bar</button>
+    
+    <form id="barform">
+        ID: <input id="barid" disabled><br/>
+        Name: <input id="barname"><br/>
+        <input type="submit" value="Save">
+    </form>
+</body>
+</html>
