@@ -23,7 +23,7 @@ case class Bar(id: Option[Int], name: String)
 
 object Bars extends PlayResourcesController[Int] {
 
-  var bars = mutable.HashMap.empty[Int, Bar]
+  val bars = mutable.HashMap.empty[Int, Bar]
   def nextId = if (bars.keys.isEmpty) 0 else bars.keys.max + 1
   
   implicit val barReads = Json.reads[Bar]
